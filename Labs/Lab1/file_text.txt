@@ -1,0 +1,5 @@
+studente	voto	esame_precedente
+Chris	23	24
+Evans	25	23
+Martin	27	22
+Dudley	23	30	

@@ -1,0 +1,769 @@
+---
+title: "Laboratory 1"
+author: "Gioia Di Credico"
+date: "Spring 2020"
+output:
+  html_document:
+    toc: yes
+  beamer_presentation:
+    highlight: tango
+  include: null
+  ioslides_presentation:
+    highlight: tango
+  pdf_document:
+    highlight: tango
+    keep_tex: yes
+    toc: yes
+  slide_level: 2
+  slidy_presentation:
+    fig.height: 3
+    fig.width: 4
+    highlight: tango
+header-includes:
+- \usepackage{color}
+- \definecolor{Purple}{HTML}{911146}
+- \definecolor{Orange}{HTML}{CF4A30}
+- \setbeamercolor{alerted text}{fg=Orange}
+- \setbeamercolor{frametitle}{bg=Purple}
+institute: University of Udine & University of Trieste
+graphics: yes
+subtitle: Simulation, examples and exercises
+fontsize: 10pt
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', warning=FALSE, message=FALSE, fig.asp=0.625, dev='png', global.par = TRUE, dev.args=list(pointsize=10), fig.path = 'figs/')
+library(MASS)
+```
+```{r setup, include=FALSE}
+library(knitr)
+local({
+  hook_plot = knit_hooks$get('plot')
+  knit_hooks$set(plot = function(x, options) {
+    paste0('\n\n----\n\n', hook_plot(x, options))
+  })
+})
+```
+
+
+# Before starting
+
+Along the course, we will need specific packages and libraries. You may install a package simply typing in your console the command:
+
+$\mathsf{install.packages("name\_package")}$
+
+and then load in your environment with the function
+
+$\mathsf{library("name\_package")}$
+
+We will often use the package related to the book *Data Analysis and Graphics Using R*, written by John Maindonald and W.John Braun.
+
+The package of the book is called $\mathsf{DAAG}$ and you may install and load in your laptop.
+
+
+<!-- And let me start with a quote of professor Andrew Gelman, a statistician of the Columbia University, about the roles of statistics and data-science: -->
+
+<!-- *I think statistics (and machine learning, which I take to be equivalent to statistical inference but done by different people) is the least important part of data science. But I do think statistics has a lot to contribute, in design of data collection, model building, inference, and a general approach to making assumptions and evaluating their implications*. -->
+
+<!-- And here's another quote by Nate Silver, american statistician: -->
+
+<!-- *I think data-scientist is a sexed up term for a statistician*. -->
+
+
+
+# $\mathsf{R}$: basic commands and assignments
+
+## Vectors
+
+The typical command for defining a vector in $\mathsf{R}$ is $\mathsf{c()}$. Let see some examples of vectors:
+
+```{r basic, echo=TRUE}
+c(2,5,6,4,5)
+c("Roma", "Milano", "Trieste")
+c(T, F,T,T,F)
+
+#standard way for storing a vector, with <- assignment
+x <- c( 0.2, 0.4, 0.5, 0.6)
+
+```
+There are various functions for inspecting the vectors and other $\mathsf{R}$ objects:
+
+
+```{r basic 2, echo=TRUE}
+# the vector length
+length(x)
+# test the condition of"greater than"
+x > 0.5
+# test the condition "not"
+x != 0.2
+```
+
+For accessing the element vectors, the rule is to use the square brackets:
+
+```{r basic 3, echo=TRUE}
+# extract the first element of the vector
+x[1]
+# extract the first two items of the vector
+x[c(1,2)]
+# omit the first two items of the vector
+x[-c(1,2)]
+# extract given a condition
+x[ x > 0.5 ]
+# concatenate vectors
+y <- c(1,3,5,7)
+z <- c(x,y)
+z
+w<-(x+y)^2
+w
+
+```
+
+There are two widely used functions for dealing with vectors, other than $\mathsf{c()}$: $\mathsf{seq(), rep()}$.
+
+```{r basic 4, echo=TRUE}
+seq(from=4, to=8, by=0.5)
+seq(from=4, to=8, length.out=9)
+rep(c("Bello", "Brutto"), 4)
+
+c(rep("Data scientists",1), rep("are crazy",1))
+
+
+```
+
+## Matrices
+
+Defining a matrix is slightly more complicate than defining a vector, since this requires the determination of the number of rows and the number of columns in advance. This is made possible by the function $\mathsf{matrix()}$.
+
+```{r basic 5, echo=TRUE}
+# define a matrix of 1 values with 3 rows and 5 columns
+mat<-matrix(1, nrow=3, ncol=5)
+mat
+# define a matrix where each row cell represents the row number
+mat2<-matrix( c(rep(1,5), rep(2,5), rep(3,5)   ),nrow=3,ncol=5, byrow=TRUE)
+mat2
+# concatenate matrices
+mat_conc<-rbind(mat, mat2)
+# dimension of the matrix
+dim(mat_conc)
+mat_conc
+# extract the first columns of the matrix
+mat_conc[,1]
+# extract the first row of the matrix
+mat_conc[1,]
+```
+One of the most useful $\mathsf{R}$ functions is $\mathsf{apply()}$, suitable for computing some quantities:
+
+```{r basic 6, echo=TRUE}
+# compute the total sum of each row
+apply(mat_conc,1, sum)
+# compute the mean of each row
+apply(mat_conc,1, mean)
+# compute the total sum of each column
+apply(mat_conc,2, sum)
+
+```
+The matrix product in $\mathsf{R}$ is performed via the command '%*%':
+
+```{r basic 7, echo=TRUE}
+mat%*%t(mat2)
+
+```
+
+## Data frames
+
+Generally, data scientists and statisticians need to work with well organized sets of data, also called *data frames*. In $\mathsf{R}$ the $\mathsf{data.frame()}$ function allows for dealing with these data structures.  Suppose to have the totals of carbon emissions that resulted from fossil fuel use. We may preliminary plot the two variables and then collect them in a data frame.
+
+```{r basic 8, echo=TRUE}
+year<-c(1800, 1850, 1900, 1950, 2000)
+carbon<-c(8, 54, 534, 1630, 6611)
+plot(carbon~year, pch=16)
+fossil_frame<-data.frame(year=year, carbon=carbon)
+fossil_frame
+```
+
+Many datasets are available in some $\mathsf{R}$ packages, and many others are already available in $\mathsf{R}$, with no need to install the packages. For instance, the dataset $\mathsf{cars}$ contains the speed in mph and the stopping distance of 50 cars. (For more details, type $\mathsf{help(cars)}$ on your $\mathsf{R}$ console.)
+
+```{r basic 9, echo=TRUE}
+# with this function I access general information about the dataset
+summary(cars)
+is.data.frame(cars)
+# display the first 5 items
+head(cars, n=5)
+# extract column names
+colnames(cars)
+```
+
+Accessing the elements of a data frame is easy. Analogously to what we did with the matrices, we may use the square brackets:
+
+```{r basic 10, echo=TRUE}
+# extract the first five rows
+cars[1:5,]
+# extract the first five rows and the first column
+cars[1:5,]
+```
+An elegant way for accessing the elements of a data frame, given a particular condition, is made possible by the use of the function $\mathsf{subset()}$:
+
+
+```{r basic 11, echo=TRUE}
+# extract the units with a speed greater than 50 mph
+subset(cars, speed>20)
+# extract the units with the dist minor than 10 or greater than 25
+subset(cars, dist<10 | dist>75)
+```
+
+## Functions for importing a data frame
+
+In the majority of the cases, datasets are *external* with respect to the $\mathsf{R}$ environment and owned/collected by the researchers. In such cases, we need specific functions for importing the dataset, $\mathsf{R}$ provides a flexible set of commands for importing the data. 
+
+```{r data frame,echo=TRUE}
+# for .txt files
+
+studenti <- read.table( file="file_text.txt", header=TRUE, sep="", dec=".")
+studenti
+
+# for .csv files
+teams <- read.csv(file="file_excel.csv", header=TRUE, sep=";")
+teams
+
+
+```
+
+For accessing the columns (variables) of your dataframe, yoy may use the \$:
+
+```{r data frame 2,echo=TRUE}
+# for .txt files
+studenti$voto
+teams$shots.home
+
+```
+
+
+## If statement
+
+Analogously to other languages, $\mathsf{R}$ allows for testing some conditions with $\mathsf{if,\ldots,else, \ldots else\ if}$ statements.
+
+```{r basic 12, echo=TRUE}
+s <- c(20,30,45,30, 34)
+
+if (mean(s)<=20){
+  print("mean is minor than 20")
+}else if(mean(s)>20 & mean(s)>=30){
+  print("mean is bounded between 20 and 30")
+}else{
+  print("mean is greater than 30")
+}
+```
+
+## Loops
+
+Loops are easily doable in $\mathsf{R}$. Suppose to build the first 20 elements of the Fibonacci sequence:
+
+```{r basic 13, echo=TRUE}
+n<-20
+fibonacci_seq<-c()
+fibonacci_seq[1]<-1
+fibonacci_seq[2]<-1
+for (i in 3: n){
+  fibonacci_seq[i] <- fibonacci_seq[i-2]+fibonacci_seq[i-1]
+}
+fibonacci_seq
+
+```
+
+
+## Writing your own function
+
+$\mathsf{R}$ contains a lot of built-in functions. However, sometimes you could need to write your own function, depending on some parameters/input values, in order to obtain some output values.
+
+```{r basic 14, echo=TRUE}
+# generic function syntax
+foo <- function(param1, param2){
+  output=f(param1, param2)
+return(output)
+}
+
+```
+
+For instance, you may write a mathematical function:
+
+```{r basic 15, echo=TRUE}
+parabola <- function(x,a,b,k){
+ y=a*x^{2}+b*x+k
+return(y)
+}
+parabola(2,-2,3,1)
+curve(parabola(x, a=1, b=1, k=1), xlim=c(-8,8), ylab="y")
+curve(parabola(x, a=2, b=2, k=1), xlim=c(-8,8),col="red", lty=2, ylab="y", add=TRUE)
+
+```
+
+
+
+
+
+# $\mathsf{R}$ statistical introduction: probability distributions
+
+## Some useful commands for the distributions
+
+
+For the main discrete and continuous distributions, $\mathsf{R}$ provides some built-in functions for computing the density/probability function, the cumulative distribution function, the quantile function and the random generation of random numbers. The syntax is the following:
+
+- $\mathsf{d<name>(x,<parameters>)}$ density (probability) function in $x$.
+- $\mathsf{p<name>(x,<parameters>)}$ cumulative distribution function in $x$.
+- $\mathsf{q<name>(r,<parameters>)}$ $r$-th quantile.
+- $\mathsf{r<name>(n,<parameters>)}$  generation of $n$ random numbers.
+
+
+Some examples:
+
+```{r examples, echo=TRUE}
+#Compute the density of a normal(0,1) in 1.96
+dnorm(1.96)
+
+```
+
+
+## Examples
+```{r examples_2, echo=TRUE}
+set.seed(1)
+#Compute the density of a normal(1,2) in 1.96
+dnorm(1.96, mean=1, sd=sqrt(2))
+#Compute the distribution function of a gamma(2,2) in 1
+pgamma(1,shape=2, rate=2, lower.tail=TRUE)
+#generate 100 values from a Poisson distribution with
+#rate 2 and plot the correspondent histogram
+z<-rpois(100,2)
+barplot(table(z), ylab="frequency")
+
+
+
+```
+
+
+# Discrete random variables
+
+## The binomial distribution
+
+Consider $n$ independent binary trials each with success probability $p$, $0 < p < 1$. The r.v.
+$X$ that counts the number of successes has **binomial distribution** with probability
+function
+$$
+{\rm Pr}(X = x) = \binom{n}{x} p^x \, (1-p)^{n-x} \, , \hspace{1cm} x = 0,\ldots,n\, .
+$$
+
+
+The notation is $X \sim {\cal B}_i(n, p)$, and
+$E(X) = n\,p$, ${\rm Var}(X) = n\,p\,(1-p)$. 
+
+The case when $n = 1$ is known as **Bernoulli distribution**.
+
+```{r binom, echo=TRUE}
+#graphical setting for margins and type of points
+par(mfrow=c(1,2),mar=c(5,4,2,1), oma=c(0,0.2,0.2,0), pty="s", pch = 16)
+#plot the binomial distributions with different input
+plot(0:20, dbinom(0:20, 20, 0.2), 
+     xlab = "x", ylab = "f(x)", cex.lab=2, main="n=20", cex.main=2)
+plot(0:50, dbinom(0:50, 50, 0.5), xlab ="x", ylab = "f(x)",
+      cex.lab=2, main= "n=50", cex.main=2)
+```
+
+
+
+
+
+## The binomial distribution: genesis
+
+Let $X_{1}, \ldots, X_{n}$ denote i.i.d r.v, where each $X_{i}$ is an independent binary trial each with success probability $p$. In symbols, 
+
+$$ X_{i}= \begin{cases}
+           1 & \mbox{ with probability } p  \\
+           0 & \mbox{ with probability } 1-p
+           \end{cases}
+$$
+
+The single trial is a Bernoulli distribution with mean $p$ and variance $p(1-p)$.
+
+The sum of these r.v., $n\overline{X}_{n}=\sum_{i=1}^{n}X_{i}$, follows a Binomial distribution with mean $np$ and variance $np(1-p)$.
+
+
+**Exercise 1**
+
+- Write a function $\mathsf{binomial(x,n,p)}$ for the binomial distribution above, depending on parameters $\mathsf{x,n,p}$, and test it with some prespecified values. Use the function $\mathsf{choose()}$ for the binomial coefficient.
+
+- Plot two binomials with $n=20$, and $p=0.3, 0.6$ respectively.
+
+
+## The geometric distribution
+
+The geometric distribution is used for modeling the number of failures until the first success:
+
+$$Pr(X=r)=p(1-p)^{r}, \ r=0,1,2,\ldots $$
+
+
+```{r geom,  echo=TRUE}
+X=0:10
+# use dgeom(x,p), with x number of failures and probability of success p 
+plot(X, dgeom(X,0.6), type="h", ylim=c(0,1), main="Geometric distribution for p=0.6", ylab="f(x)", xlab="X=Number of failures before first success")
+```
+
+
+If $X_{1}, \ldots, X_{k}$ are independent geometrically distributed variables with parameter p, then the sum $n\overline{X}_{n}=\sum_{i=1}^{k} X_{i}$ follows a **negative binomial distribution**, $NB_i(k,p)$. Denoting $Y=n\overline{X}_{n}$, the probability function is:
+
+$$Pr(Y=r)= \binom{k+r-1}{k}p^{k}(1-p)^r,$$
+
+where $k$ is a predefined number of successes. The above distribution expresses the probability of observing $r$ failures before a prespecified number of $k$ successes, and has mean $E(Y)=k\frac{(1-p)}{p}$ and variance $Var(Y)=k\frac{(1-p)}{p^{2}}$.
+
+
+
+## The negative-binomial: Mini Cooper example
+
+Suppose we are looking out from the window, and we want to count the number of Mini Cooper (our successes), let's say the first three of them. How many trials do we have to wait before the k-th success?  Assume that the probability of observing a Mini Cooper is $p=0.08$.
+
+Y = number of cars other than Mini Cooper
+
+$k=3$,  number of successes (**prespecified**).
+
+$r=$ number of failures (**random**)
+
+Which is the probability of observing exactly 20 other cars before observing 3 Mini Cooper? Solve in $\mathsf{R}$.
+
+
+
+```{r binom_neg,  echo=TRUE}
+k<-3;r<-20; p<-0.08; 
+dnbinom(x=r, size=k,prob=p )
+plot(0:1000, dnbinom(0:1000, size=k, prob=p), xlab="Y=number of failures before k successes",
+  ylab="f(x)",pch=21, bg=1)
+```
+
+**Exercise 2**
+
+- Generate in $\mathsf{R}$ the same output, but using $\mathsf{rgeom()}$ for generating the random variables. *Hint*: generate $n$ times three geometric distribution $X_1,\ldots, X_3$ with $p=0.08$, store them in a matrix and compute then the sum $Y$. 
+
+
+
+
+## The Poisson distribution
+
+The Poisson distribution is used for modelling counts:
+
+$$Pr(X=x)=\frac{e^{-\lambda} \lambda^{x}}{x!}, \ x=0,1,2,\ldots;  \ \ \ \ \lambda>0. $$
+For this distribution, $E(X)={\rm Var}(X)=\lambda$.
+
+<!-- mgf_poisson <- function(lambda,t){ -->
+
+<!-- values_mgf <- eval(D(expression(exp(lambda*(exp(t)-1))), "t")) -->
+<!-- expression_mgf <- D(expression(exp(lambda*(exp(t)-1))), "t") -->
+
+<!-- return( list( expected_value=values_mgf, expression=expression_mgf    )) -->
+<!-- } -->
+
+
+
+
+
+
+
+
+# Continuous random variables
+
+## Gamma distribution
+
+The **Gamma** distribution is a two-parameter family of continuous distribution: the **Exponential** and the $\chi^{2}$ distribution are special cases of the Gamma distribution. The density for a $\mbox{Gamma}(\alpha, \beta)$ is:
+
+$$ f(x; \alpha, \beta)= \frac{\beta^{\alpha} }{\Gamma(\alpha)}e^{-\beta x}x^{\alpha-1}, \ \ \alpha, \beta >0, \ x \in (0, \infty),$$
+where $\alpha$ is the *shape* parameter and $\beta$ the *rate* parameter. 
+
+Let's investigate the relationships with the other mentioned distribution through $\mathsf{R}$ simulation. Here we consider $X_1, \ldots, X_n \sim Exp(\beta)$. What is the distribution of $Y= \sum_{i=1}^{n} X_i$?  
+
+```{r gamma, fig.height=2, fig.wifth=3, echo=TRUE}
+n<-1000; alpha<-2; beta<-2; sample_rep<-1000
+X<-matrix(NA, n, sample_rep)
+for (h in 1:n){
+  X[h,]<-rexp(sample_rep, beta)
+}
+Y<-apply(X,1,sum)
+hist(Y, breaks=40, probability=TRUE)
+curve(dgamma(x, n, beta), col="red", lwd=2, add=TRUE)
+
+```
+Thus, the exponential distribution $\mbox{Exp}(\beta)$ is a special case of a Gamma, precisely $\mbox{Gamma}(1, \beta)$.
+
+
+
+
+**Exercise 3**
+
+
+- Show in $\mathsf{R}$, also graphically, that $\mbox{Gamma}(n/2, 1/2)$ coincides with a $\chi^{2}_{n}$.
+
+- Find the 5\% and the 95\% quantiles of a $\mbox{Gamma}(3,3)$. 
+
+## Beta distribution
+
+In probability and statistics, proportions are widely studied. Thus, researchers often need to work with a distribution function *bounded* in $[0,1]$. This is the case of the **Beta** distribution, $\mbox{Beta}(\alpha, \beta)$, with density function:
+
+$$ f(x; \alpha, \beta)=\frac{1}{B(\alpha, \beta)}x^{\alpha-1}(1-x)^{\beta-1}, \ x \in [0,1], \ \alpha, \beta >0,$$
+
+where $B(\alpha, \beta)=\frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha+\beta)}$ is the so called Beta function, which is a normalization constant to ensure that the total probability integrates to 1.
+
+ From probabiliy theory we know that;
+
+\begin{align*}
+E(X)=&\int_{0}^{1}xf(x;\alpha,\beta)dx=\frac{\alpha}{\alpha+\beta} \\
+Var(X)=& \int_{0}^{1} (x-E(X))^{2} f(x;\alpha,\beta)dx=\frac{\alpha \beta}{(\alpha+\beta)^2(\alpha+\beta+1)}
+\end{align*}
+
+
+**Exercise 4**
+
+- Generate $n=1000$ values from a $\mbox{Beta}(5,2)$ and compute the sample mean and the sample variance.
+
+
+
+
+## The mixture distribution
+
+In statistics, the mixture distribution entails the concepts of conditional and marginal distribution. If $X|Y \sim g_{X|Y}(\cdot)$, and $Y \sim h_Y(\cdot)$, then the marginal distribution for $X$ is a **mixture distribution** with form:
+
+$$f(x)= \int_{\mathcal{Y}} g_{X|Y}(\cdot)h_{Y}(\cdot)dy $$
+
+For instance, given $X|Y \sim \mbox{Normal}(0, 1/\sqrt{Y}), Y \sim \mbox{Gamma}(\nu/2, \nu/2)$, one can prove that the $X \sim t_{\nu}$, where  $t_{\nu}$ is a **Student's t distribution** with $\nu$ degrees of freedom. Let's investigate via simulation.
+
+```{r mix, fig.height=5, fig.width=6, echo=TRUE}
+t_mixture <- function(mean,  df, n){
+  
+  Z=rgamma(n, df/2, df/2)
+  X=rnorm(n, mean, sd=sqrt(1/sqrt(Z)))
+  return(X)
+  
+}
+df<-5
+hist(t_mixture(0,df,10000), probability=TRUE, breaks=40, 
+  main=paste("Histogram for a t with", df, "d.f"), xlab="x")
+curve(  dt(x,5), col="red", lwd=2, add=TRUE )
+```
+
+
+
+**Exercise 5**
+
+- Analogously, show with a simple $\mathsf{R}$ function that a negative binomial distribution may be seen as a mixture between a Poisson and a Gamma. In symbols: $X|Y \sim \mathcal{P}(Y)$, $Y \sim \mbox{Gamma}(\alpha, \beta)$, then $X \sim \ldots$. 
+
+# Statistical applications
+
+## The empirical distribution function
+We know that the **empirical cumulative distribution function** is defined as:
+
+$$
+\widehat{F}_n(t) = \dfrac{\text{number of elements of $y$}\leq t}{n} \,.
+$$
+
+
+Under some mild conditions, $\widehat{F}_n(t)$ converges to the true cumulative distribution function $F(x)$. Suppose to generate $n$ values from a $\mbox{Beta}(3,4)$ and use the $\mathsf{ecdf()}$ function.
+
+
+
+```{r ecdf, echo=TRUE}
+set.seed(2)
+par(mfrow=c(1,2))
+n<-50
+y<-rbeta(n, 3,4)
+edf_beta<-ecdf(y)
+tt<-seq(from=0, to=1, by=0.01)
+plot(edf_beta, verticals=TRUE, do.p=FALSE, main="ECDF and CDF: n=50")
+lines(tt, pbeta(tt,3,4), col=2, lty=2, lwd=2)
+n2<-500
+y2<-rbeta(n2, 3,4)
+edf_beta2<-ecdf(y2)
+tt<-seq(from=0, to=1, by=0.01)
+plot(edf_beta2, verticals=TRUE, do.p=FALSE, main="ECDF and CDF: n=500")
+lines(tt, pbeta(tt,3,4), col=2, lty=2, lwd=2)
+
+
+```
+As $n \rightarrow \infty$, the approximation to the true $F$ improves.
+
+**Exercise 6**
+
+- Instead of using the built-in function $\mathsf{ecdf()}$, write your own $\mathsf{R}$ function for the empirical cumulative distribution function and reproduce the two plots above.
+
+## The empirical distribution function and the quantiles
+
+Another way for comparing the empirical distribution with the true distribution is the *quantile-quantile plot*. We already know that the quantile function $\mathsf{q<name>(p,)}$ is the inverse of the cdf function $\mathsf{p<name>(q,)}$. In the previous example, we may compare directly the quantiles via the $\mathsf{qqplot()}$ graphical function. This is a useful tool for assessing the plausibility of a theoretical distribution for a set of observations $y = (y_1, . . . , y_n)$.
+
+
+```{r qq, echo=TRUE}
+par(mfrow=c(1,2))
+qqplot(qbeta(ppoints(n),3,4),y,
+  xlab="True quantiles", ylab="Sample quantiles",
+  main = "Q-Q plot for Beta(3,4): n=50")
+qqline(y, distribution = function(p) qbeta(p, 3,4),
+       prob = c(0, 1), col = 2)
+
+qqplot(qbeta(ppoints(n2),3,4),y2,
+  xlab="True quantiles", ylab="Sample quantiles",
+  main = "Q-Q plot for Beta(3,4): n=500")
+qqline(y2, distribution = function(p) qbeta(p, 3,4),
+       prob = c(0, 1), col = 2)
+
+```
+
+
+
+The quantile-quantile plot is a powerful test for assessing the **model goodness-of-fit**, and more specifically the normality assumption.
+
+**Exercise 7**
+
+Compare in $\mathsf{R}$ the assumption of normality for these samples:
+
+- $y_1, \ldots, y_{100} \sim t_{\nu},$ with $\nu=5,20, 100$. What does it happens when the number of degrees of freedom $\nu$ increases?
+
+- $y_1, \ldots, y_{100} \sim \mbox{Cauchy}(0,1)$. Do you note something weird for the extremes quantiles? 
+
+
+
+## The binomial distribution: approximation with CLT
+
+Using the **central limit theorem**,  we may approximate the binomial distribution  with a normal distribution. In fact, by means of CLT, we already know that $$
+\overline{X}_n \sim {\cal N}(p, p(1-p)/n) \, .
+$$ 
+Then, it is easy to show that
+
+$$
+n \overline{X}_n \sim {\cal N}(np, np(1-p)) \, .
+$$
+For large $n$, the binomial distribution may be approximated by a normal distribution with mean $\mu=np$ and variance $\sigma^{2}=np(1-p)$.
+
+
+
+
+```{r binom_appr_10, echo=TRUE}
+#set the seed
+set.seed(123)
+par(mfrow=c(1,2), mar=c(5,4,4,1), oma=c(1,1,1,1))
+p<-0.5; size1<-10; size2<-50
+#normal approximation
+prob_bin <- dbinom(0:size1, size1,p)
+curve(dnorm(x, size1*p, sqrt(size1*p*(1-p))), xlim=c(0,size1), 
+      xlab="x", ylab="f(x)",
+  main=paste("n=", size1), cex.main=1.5)
+lines(0:size1,prob_bin, type="h", main="n=10", xlim=c(0,size1), 
+     cex.lab=1.5, col="red")
+
+prob_bin <- dbinom(0:size2, size2,p)
+curve(dnorm(x, size2*p, sqrt(size2*p*(1-p))), xlim=c(0,size2), 
+      xlab="x", ylab="f(x)", main=paste("n=", size2), cex.main=1.5)
+lines(0:size2,prob_bin, type="h", main="n=10", xlim=c(1,size2), 
+     cex.lab=1.5, col="red")
+
+```
+
+
+
+**Exercise 8**
+
+Write a general $\mathsf{R}$ function for checking the validity of the central limit theorem. *Hint* The function will consist of two parameters: clt_function <- function($\mathsf{n}$, $\mathsf{distr}$), where the first one is the sampe size and the second one is the kind of distribution from which you generate. Use plots for visualizing the results.
+
+## Approximation with CLT: application
+
+The approximation above is useful in statistics for computing some quantities. For instance, given $X \sim B_i(n,p)$ and $Y \sim B_i(n, q)$, how can we easily compute the probability $P(X>Y)$? 
+
+Normal approximation is the simplest way to do it. We may approximate: $X \approx {\cal N}(np, np(1-p)), \ Y \approx {\cal N}(nq, nq(1-q))$. Then, we may use a well known probability result, that is the difference $W=X-Y$ of two independent normal distribution with means $\mu_X, \mu_Y$ and variances $\sigma^2_X, \sigma^2_Y$ respectively, is *still a normal ditribution* with mean $\mu_X-\mu_Y$ and variance $\sigma^2_X+\sigma^2_Y$.
+
+In this case, $\mu_w=\mu_X-\mu_Y= n(p-q)$ and variance $\sigma^2_w=\sigma^2_X+\sigma^2_Y=n(p(1-p)+q(1-q))$.
+
+## Approximation with CLT: real application with waterpolo goals
+
+Tomorrow two professional Italian waterpolo teams, Posillipo and Pro Recco, compete against each other: $X$ and $Y$ are the random *goals scored* by both the teams. We assume they follow two independent Binomial distributions: precisely, $X, Y$ represent the number of shots converted in goal on the total number of shots $n, m$ made by Pro Recco and Posillipo respectively, with probabilities $p,q$. 
+
+Before a match, the number of shots are *unknown*. In what follows, we adopt a simplification, and we treat the quantities $p,q,m,n$ as *known*, for instance fixing them upon historical experience: $p=0.5, q=0.7, n=20, m=20$.
+
+We want to investigate the Posillipo probability of winning the next match against Pro Recco, $P(X>Y)=P(X-Y>0)$. 
+
+
+
+```{r binom_water, echo=TRUE,  results='hold', fig.keep='high', fig.height=8, fig.width=5}
+p<-0.5; q<-0.7; n<-20; m<-20
+Prob_posillipo=pnorm(0, mean=p*n-q*m, 
+               sd=sqrt( n*p*(1-p)+m*q*(1-q)  ),  
+               lower.tail=FALSE)
+Prob_posillipo
+```
+
+Suppose we want make inference for the mean $\mu_{w}=\mu_{X}-\mu_{Y} \approx mq-np$. The $1-\alpha$ confidence interval for $\mu_{w}$ is approximately defined as:
+
+$$  P(  \overline{W}_n-\frac{\sigma_{w}}{\sqrt{n}}z_{\alpha/2} \le \mu_{w} \le \overline{W}_n+\frac{\sigma_{w}}{\sqrt{n}}z_{1-\alpha/2}  )=1-\alpha $$
+
+
+
+```{r binom_water2, echo=TRUE,  results='hold', fig.keep='high', fig.height=8, fig.width=5}
+conf_int<-function(alpha,n,p,m,q){
+  mean=p*n-q*m; sd=sqrt( n*p*(1-p)+m*q*(1-q));
+  return(c(qnorm(alpha/2, mean=mean, sd=sd  ),
+           qnorm( 1-alpha/2, mean=mean, sd=sd  ) ))
+}
+
+conf_int(0.05, n,p,m,q)
+conf_int(0.5, n,p, m,q)
+```
+
+
+
+```{r binom_water3, echo=TRUE}
+par(mar=c(5,4,4,1))
+curve(dnorm(x,p*n-q*m, sqrt( n*p*(1-p)+m*q*(1-q)) ),
+      xlim=c(-12,20), ylim=c(0,0.3), ylab="f(x)", cex.lab=2)
+segments(conf_int(0.05,n,p,m,q)[1],-0.01,
+        conf_int(0.05,n,p,m,q)[1],
+        dnorm(conf_int(0.05,n,p,m,q)[1],p*n-q*m,
+              sqrt( n*p*(1-p)+m*q*(1-q)) ),
+        col="black",lty=4, lwd=2)
+segments(conf_int(0.05,n,p,m,q)[2],-0.01,
+        conf_int(0.05,n,p,m,q)[2],
+        dnorm(conf_int(0.05,n,p,m,q)[2],p*n-q*m,
+              sqrt( n*p*(1-p)+m*q*(1-q)) ), 
+        col="black",lty=4, lwd=2)
+segments(0, -0.01, 0, dnorm(0, p*n-q*m,
+              sqrt( n*p*(1-p)+m*q*(1-q)) ), lwd=2 )
+points(dbinom(0:n, n, p), pch=21, bg=1)
+points(dbinom(0:m, m, q), pch=21, bg=2)
+text(15, 0.1, "Y", cex=2, col=2)
+text(10,0.1, "X", cex=2, col=1)
+text(-5, 0.15, "X-Y", cex=2, col=1)
+```
+
+
+## Independent trials: weak law of large numbers
+
+Consider the Bernoulli trials $X_{1}, \ldots, X_{n}$, with mean $p$ and variance $p(1-p)$. For this setting, the **weak law of large numbers** holds:
+
+$$ \overline{X}_n \overset{P}{\rightarrow} p, \ \mbox{as } n \rightarrow \infty, $$
+where the notation $\overset{P}{\rightarrow}$ means convergence in probability.
+
+```{r binom_law2, echo=TRUE,  results='hold', fig.keep='high', fig.height=8, fig.width=5}
+par(mar = c(4, 4, 0.5, 0.5),mfrow=c(1,1))
+#I write the function depending on two arguments: n and p
+law_large_numb<-function(n,p){
+  x<-rbinom(n, 1,p)
+  return(mean(x))
+}
+law_large_numb=Vectorize(law_large_numb)
+```
+
+
+
+
+```{r binom_law3, echo=TRUE,  results='hold', fig.keep='high', fig.height=4, fig.width=4}
+set.seed(12345);par(mar = c(6.2, 4, 0, 0.5),mfrow=c(1,1))
+curve(law_large_numb(x, p=0.5), 1,1000, xlab="n", 
+      ylab="frequency")
+abline(a=0.5, b=0, lwd=2, col="red")
+legend(80, 0.9, lty=1, col=c("black", "red"), 
+       lwd=c(1,2), c( "X/n", "p"))
+```
+
+A few trials are needed for the convergence to $p$.
+
+
+
+<!-- knitr::knit("Lab1.Rmd", tangle = TRUE, output ="Lab1_Script.R") -->
