@@ -48,9 +48,6 @@ local({
 
 **Suppose that $$ Y \sim \mathcal{N}(\begin{bmatrix} 1 \\2 \end{bmatrix} ,\begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}) $$ Find the conditional p.d.f. of $Y1$ given that $Y1 + Y2 = 3$.**
 
-
-*solution :* 
-
 $Y$ is a $2 \times1$ random vector with distribution $\mathcal{N_2}(\mu,\Sigma)$ where $\mu = \begin{bmatrix} 1 \\2 \end{bmatrix}$  and $\Sigma = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}$. 
 
 Reffering to (1.7) at section (1.6.2) in the book, $A Y \sim \mathcal{N}(A\mu, A\Sigma A^T)$, we can get that the joint distribution of 
@@ -71,9 +68,10 @@ $$\sigma^2_c = \Sigma^*_{11} - \Sigma^*_{12}\Sigma^{*-1}_{22}\Sigma^*_{21} = 2 -
 
 So, the conditional p.d.f. of $Y1$ given $Y1 + Y2 = 3$ is $\mathcal{N}(1,\frac{1}{2})$
 
+
 ## DAAG: Exercise 4.5
 
-**The following code draws, in a 2×2 layout, 10 boxplots of random samples of 1000 from anormal distribution, 10 boxplots of random samples of 1000 from at-distribution with 7 d.f.,10 boxplots of random samples of 200 from a normal distribution, and 10 boxplots of randomsamples of 200 from at-distribution with 7 d.f. :**
+**The following code draws, in a 2×2 layout, 10 boxplots of random samples of 1000 from a normal distribution, 10 boxplots of random samples of 1000 from a t-distribution with 7 d.f., 10 boxplots of random samples of 200 from a normal distribution, and 10 boxplots of randomsamples of 200 from a t-distribution with 7 d.f. :**
 
 ```{r echo=TRUE,fig.show='hide',message=FALSE, warning=FALSE}
 oldpar <- par(mfrow=c(2,2))
@@ -86,7 +84,7 @@ boxplot(split(rt(100*10, 7), tenfold100),ylab=expression(t[7]*" - 100"))
 par(oldpar)
 ```
 
-**Refer back to the discussion of heavy-tailed distributions in Subsection 3.2.2, and commenton the different numbers and configurations of points that are flagged as possible outliers**.
+**Refer back to the discussion of heavy-tailed distributions in Subsection 3.2.2, and comment on the different numbers and configurations of points that are flagged as possible outliers**.
 
 ```{r}
 oldpar <- par(mfrow=c(2,2))
@@ -99,13 +97,12 @@ boxplot(split(rt(100*10, 7), tenfold100),ylab=expression(t[7]*" - 100"))
 par(oldpar)
 ```
 
-
-Comparing normal and t-distribution we observe that there's a tendency to have a higher number of outliers in the samples simulated from a t distribution rather than the normal.
-This is due to the analytical form of the probability density function; in fact the pdf of a Normal reports an exponential decay and this property takes as consequence a probability that decays very rapidly as far as we go out of the mean $\mu$. This lead to have a very low probability to sample values that are outside to the interval of the mean.
-On the other hand, the t-distribution with 7 df doesn't have this property; these kind of distributions are known as **heavy-tailed distributions**. This lead to have an higher probability to sample points that are outside  the most frequent values.
-
+Comparing normal and t-distribution we observe that there's a tendency to have a higher number of outliers in the samples simulated from a t-distribution rather than the normal.
+This is due to the analytical form of the probability density function; in fact the pdf of a Normal reports an exponential decay and this property takes as consequence a probability that decays very rapidly as far as we go out of the mean $\mu$. This lead to have a very low probability to sample values that are outside the interval of the mean.
+On the other hand, the t-distribution with 7 df does not have this property; these kind of distributions are known as **heavy-tailed distributions**. This lead to have an higher probability to sample points that are outside  the most frequent values.
 
 In order to see how big is this difference consider this function that prints us the ratio $\frac{1-p_t(x \in [-a,+a])}{1-p_{norm}(x \in [-a,+a])}$ between the probabilities of a $t_7$ and a $\mathcal{N}(0,1)$ distribution to be out of a certain interval $[-a,+a]$ for $a =1,2,2.5,2.8,3$
+
 ```{r}
 ratio_probability <- function(level){
   prob_norm <- 1-(pnorm(level,mean=0,sd=1)-pnorm(-level,mean=0,sd=1))
@@ -119,9 +116,7 @@ a<-c(1,2,2.5,2.8,3)
 ratio_probability(a)
 ```
 
-As we can observe from these probability ratios that a value out the region of $x\sim 0$ is more likely for the t-distribution and this difference is larger as far as we move out. 
-In fact, the probability to sample a value $x \notin [-3,3]$ from a t distribution is more than $7$ times larger than in the normal case.
-
+As we can observe from these probability ratios, a value out the region of $x\sim 0$ is more likely for the t-distribution and this difference is larger as far as we move out. In fact, the probability to sample a value $x \notin [-3,3]$ from a t-distribution is more than $7$ times larger than in the normal case.
 
 
 ## CS: Exercise 4.4
@@ -132,27 +127,30 @@ In fact, the probability to sample a value $x \notin [-3,3]$ from a t distributi
 
 The normal p.d.f is : 
 
-$$ f(t) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\{-\frac{(x - \mu)^2}{2\sigma^2}\}) $$
-By considering the mean of this normal p.d.f is 0 ($\mu = 0$) and $x$ takes only positive values, since $t = x - \mu = x \geq 0$ : 
-$$ f(t) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\{-\frac{t^2}{2\sigma^2}\}) $$
+$$ f(t) = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{1}{2}(\frac{(t - \mu)}{\sigma})^2} $$
+By considering the mean of this normal p.d.f is $\mu = c \times t$ ,  where $c$ is a constant, then $f(t)$ will be : 
 
-From this equation, we can consider $k = \frac{1}{\sqrt{2\pi\sigma^2}}$ and $\lambda = \frac{1}{2\sigma^2}$, then the f(t) will be as the p.d.f of $t_i$: 
+\begin{align}
+f(t) &= \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{1}{2}(\frac{(t - ct)}{\sigma})^2}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{1}{2}(\frac{t(1 - c)}{\sigma})^2}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(1-c)^2}{2}(\frac{t^2}{\sigma^2})}\\
+\end{align}
+
+
+From this equation, we can consider $k = \frac{1}{\sqrt{2\pi\sigma^2}}$ and $\lambda = \frac{(1-c)^2}{2\sigma^2}$, then the f(t) will be as the p.d.f of $t_i$: 
 
 $$f(t) = k e^{-\lambda t^2}$$ . 
 
 Now, to prove that $k = \sqrt{4 \lambda / \pi}$, we can write $k$ with rescpect to $\lambda$ : 
 
-$$k = \frac{1}{\sqrt{2\pi\sigma^2}} = \sqrt{\frac{1}{2\pi\sigma^2}} = \sqrt{\frac{1}{2\sigma^2}\frac{1}{\pi}} = \sqrt{\lambda/\pi}$$
+$$k = \frac{1}{\sqrt{2\pi\sigma^2}} = \sqrt{\frac{1}{2\pi\sigma^2}} = \sqrt{\frac{1}{2\sigma^2}\frac{1}{\pi}} = \sqrt{\frac{\lambda}{(1-c)^2}\frac{1}{\pi}}$$
 
-In this case, we can see that $k = \sqrt{ \lambda / \pi}$ , and to make it $\sqrt{4 \lambda / \pi}$ we have to multiply the normal p.d.f by 2, such that : 
-
-$$ f(t) = \frac{2}{\sqrt{2\pi\sigma^2}}\exp\{-\frac{(x - \mu)^2}{2\sigma^2}\}) $$
-
-where again $t = x - \mu$ , $k = \frac{2}{\sqrt{2\pi\sigma^2}}$ and $\lambda = \frac{1}{2\sigma^2}$. And in this case : 
-
-$$k = \frac{2}{\sqrt{2\pi\sigma^2}} = \sqrt{\frac{4}{2\pi\sigma^2}} = \sqrt{4 \frac{1}{2\sigma^2}\frac{1}{\pi}} = \sqrt{4\lambda/\pi}$$
+Finally, we can choose some possible values for $c$, in order to show that $k = \sqrt{4 \lambda / \pi}$. For example, if $c= \frac{1}{2}$ then : 
 
 
+$$k =\sqrt{\frac{\lambda}{(1-\frac{1}{2})^2}\frac{1}{\pi}} = \sqrt{4 \lambda / \pi}$$
+
+other possible value is $c = \frac{3}{2}$. 
 
 **(b) Obtain a maximum likelihood estimator for $\lambda$. ** 
 
@@ -218,19 +216,20 @@ At first, considering the ten subintervals $[0, 0.1]$, $[0.1, 0.2]$, $...$, $[0.
 ```{r}
 library(LearnBayes)
 
-midp<-seq(0.05,0.95, by=0.1)
+midp <- seq(0.05, 0.95, by=0.1)
 midp
 ```
+
 Once defined these points we can express our prior beliefs about $p$ by using an histogram model that associate to each subinterval a probability by using the `histprior` function.
 Since we don't know in advance if the coin is fair or not, we assume that the probability that it lands heads is equal for every subinterval. 
+
 ```{r}
-prior <- c(.1,.1,.1,.1,.1,
-           .1,.1,.1,.1,.1)
-p=seq(0,1,length=500)
+prior <- c(.1,.1,.1,.1,.1,.1,.1,.1,.1,.1)
+p <- seq(0,1,length=500)
 
-prior<-histprior(midpts = midp, prob = prior,p)
+prior <- histprior(midpts = midp, prob = prior,p)
 
-plot(p,prior, type = "l", main = "Prior probability", xlab = "p")
+plot(p, prior, type = "l", main = "Prior probability", xlab = "p")
 ```
 
 After having stated our prior beliefs, we proceed by the experimental evaluation. We tossed a coin for 20 times and we reported in the following table the results:
@@ -258,8 +257,9 @@ After having stated our prior beliefs, we proceed by the experimental evaluation
 | 19      | Head | 
 | 20      | Head | 
 
-**Total Heads ($s$)**: 11
-**Total Tails ($f$)**: 9
+**Total Heads ( $s$ )**: 11
+
+**Total Tails ( $f$ )**: 9
 
 We now update our knowledge of $p$ by applying the Bayes' theorem:
 
@@ -274,12 +274,12 @@ We evaluate this posterior in two different ways:
 * evaluating the posterior $P(p|s)$ on a sequence of 500 elements that goes from 0 till 1.
 
 ```{r}
-success<-11
-failure<-9
+success <- 11
+failure <- 9
 
-like<-choose(20, success)*p^(success)*(1-p)^(failure)
-post<-like*prior
-post<-post/sum(post)
+like <- choose(20, success)*p^(success)*(1-p)^(failure)
+post <- like*prior
+post <- post/sum(post)
 
 plot(p, post, main="Posterior probability", xlab="p")
 ```
@@ -287,10 +287,50 @@ plot(p, post, main="Posterior probability", xlab="p")
 * sampling $p$ with replacement with probability equal to the posterior.
 
 ```{r}
-Simulated<-sample(p,replace=TRUE, prob=post)
-hist(Simulated, xlab='p')
+set.seed(123)
+simulated <- sample(p, replace=TRUE, prob=post)
+hist(simulated, xlab='p')
 ```
 
 After the experiment, our notion about the probability $p$ is improved. The posterior distribution on both cases suggests that the probability of having head is around $0.5$ and this lead to think that the coin is fair.
 
+
 ## DAAG: Exercise 7.7
+
+Apply polynomial regression to the seismic timing data in the data frame geophones. Specifically, check the fits of linear, quadratic, cubic, and quartic (degree = 4) polynomial estimates of the expected thickness as a function of distance. What do you observe about the fitted quartic curve? Do any of the fitted curves capture the curvature of the data in the region where `distance` is large?
+
+We start by loading the data frame and explore it.
+```{r, echo=TRUE}
+library(DAAG)
+df <- geophones
+distance <- df$distance
+thickness <-  df$thickness
+plot(thickness ~ distance)
+```
+
+As we can see, there is not a clear linear relationship between the distance and the thickness. Let's try to fit the four different models, as requested by the excercise, and see what happens.
+
+```{r, echo=TRUE}
+
+linear <- lm(thickness ~ distance)
+quadratic <- lm(thickness ~ distance + I(distance^2))
+cubic <- lm(thickness ~ distance + I(distance^2) + I(distance^3))
+quartic <- lm(thickness ~ distance + I(distance^2) + + I(distance^3) + I(distance^4))
+
+plot(distance, thickness, xlab="Distance", ylab="Fitted values")
+points(distance, linear$fitted.values, col="2", pch=19)
+points(distance, quadratic$fitted.values, col="3", pch=19)
+points(distance, cubic$fitted.values, col="4", pch=19, cex=.5)
+points(distance, quartic$fitted.values, col="6", pch=19)
+legend("topright", c("linear","quadratic","cubic","quartic"), pch=19, 
+       col=c("2", "3", "4", "6"))
+```
+
+From the plot above, we can observe that the straight line is inappropriate to describe the relationship, and the quadratic and the cubic curves are quite similar to each other but they cannot capture the behaviour of the data when the distance is large. The only one that is following the data is the polynomial of degree 4. However, polynomials can be effective when a curve of degree 2 or 3 is used, instead, polynomial curves with degree greater than 3 can be problematic.
+
+A first problem of this type of models, as we can observe in the result below, is the correlation between coefficients, that is really high.
+```{r, echo=TRUE}
+summary(quartic, corr=TRUE)
+```
+
+Another issue is that high-degree polynomials tend to move up and down between the data values in a snake-like manner and this would lead to overfitting. Splines, or piecewise polynomials, are usually preferable to polynomials of degree greater than 3.
